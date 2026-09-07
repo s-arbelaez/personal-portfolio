@@ -20,6 +20,7 @@ export function ContentManagerPage() {
   const definition = definitions[contentType];
   const [items, setItems] = useState<ContentItem[]>([]);
   const [editing, setEditing] = useState<ContentItem | null>(null);
+  const [certificateFile, setCertificateFile] = useState<File | null>(null);
   const [message, setMessage] = useState('');
 
   async function loadItems() {
@@ -36,6 +37,14 @@ export function ContentManagerPage() {
     if (!editing) return;
     const payload = { ...editing };
     if (contentType === 'certificates') {
+      if (certificateFile) {
+        const uploadData = new FormData();
+        uploadData.append('file', certificateFile);
+        const uploadResponse = await fetch(`${apiBaseUrl}/content/certificates/upload`, { method: 'POST', credentials: 'include', body: uploadData });
+        const uploadResult = await uploadResponse.json().catch(() => null) as { url?: string; message?: string } | null;
+        if (!uploadResponse.ok || !uploadResult?.url) { setMessage(uploadResult?.message ?? 'Unable to upload certificate.'); return; }
+        payload.url = uploadResult.url;
+      }
       payload.issuedAt = payload.issuedAt ? String(payload.issuedAt).slice(0, 10) : null;
       payload.durationMinutes = payload.durationMinutes ? Number(payload.durationMinutes) : null;
     }
@@ -44,7 +53,7 @@ export function ContentManagerPage() {
     const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(payload) });
     const data = await response.json().catch(() => null) as { message?: string } | null;
     if (!response.ok) { setMessage(data?.message ?? 'Unable to save item.'); return; }
-    setEditing(null); setMessage('Saved successfully.'); await loadItems();
+    setEditing(null); setCertificateFile(null); setMessage('Saved successfully.'); await loadItems();
   }
 
   async function deleteItem(id: string) {
@@ -57,7 +66,7 @@ export function ContentManagerPage() {
   return <section className="section"><div className="container admin-content-page">
     <div className="content-manager-heading"><div><Link className="back-link" to="/admin">← Admin workspace</Link><span className="section-eyebrow">Content management</span><h1>{definition.title}</h1><p>Create, update, publish, or remove public {definition.title.toLowerCase()}.</p></div><button className="btn primary" type="button" onClick={() => { setEditing(emptyItem(contentType)); setMessage(''); }}>Add {definition.title.slice(0, -1)}</button></div>
     {message && <p className="manager-message" role="status">{message}</p>}
-    <div className="manager-list">{items.length === 0 && <div className="card"><p>No items yet. Add the first one.</p></div>}{items.map((item) => <article className="manager-row" key={item.id}><div><strong>{String(item.title ?? item.name ?? item.institution ?? 'Untitled')}</strong><span>{String(item.type ?? item.category ?? item.degree ?? '')}</span></div><div className="row-actions"><button className="btn secondary" type="button" onClick={() => setEditing(item)}>Edit</button><button className="btn danger" type="button" onClick={() => item.id && void deleteItem(item.id)}>Delete</button></div></article>)}</div>
-    {editing && <div className="editor-panel"><div className="panel-heading"><div><span className="section-eyebrow">Editor</span><h2>{editing.id ? 'Edit item' : 'New item'}</h2></div><button className="icon-close" type="button" aria-label="Close editor" onClick={() => setEditing(null)}>×</button></div><form className="content-form" onSubmit={saveItem}>{definition.fields.map((field) => field.type === 'checkbox' ? <label className="checkbox-field" key={field.key}><input type="checkbox" checked={Boolean(editing[field.key])} onChange={(event) => setEditing({ ...editing, [field.key]: event.target.checked })} />{field.label}</label> : <label key={field.key}>{field.label}{field.type === 'textarea' ? <textarea rows={5} value={String(editing[field.key] ?? '')} onChange={(event) => setEditing({ ...editing, [field.key]: event.target.value })} /> : <input type={field.type ?? 'text'} value={field.type === 'date' && editing[field.key] ? String(editing[field.key]).slice(0, 10) : String(editing[field.key] ?? '')} onChange={(event) => setEditing({ ...editing, [field.key]: event.target.value })} />}</label>)}<div className="form-actions"><button className="btn secondary" type="button" onClick={() => setEditing(null)}>Cancel</button><button className="btn primary" type="submit">Save item</button></div></form></div>}
+    <div className="manager-list">{items.length === 0 && <div className="card"><p>No items yet. Add the first one.</p></div>}{items.map((item) => <article className="manager-row" key={item.id}><div><strong>{String(item.title ?? item.name ?? item.institution ?? 'Untitled')}</strong><span>{String(item.type ?? item.category ?? item.degree ?? '')}</span></div><div className="row-actions"><button className="btn secondary" type="button" onClick={() => { setEditing(item); setCertificateFile(null); }}>Edit</button><button className="btn danger" type="button" onClick={() => item.id && void deleteItem(item.id)}>Delete</button></div></article>)}</div>
+    {editing && <div className="editor-panel"><div className="panel-heading"><div><span className="section-eyebrow">Editor</span><h2>{editing.id ? 'Edit item' : 'New item'}</h2></div><button className="icon-close" type="button" aria-label="Close editor" onClick={() => { setEditing(null); setCertificateFile(null); }}>×</button></div><form className="content-form" onSubmit={saveItem}>{definition.fields.map((field) => field.type === 'checkbox' ? <label className="checkbox-field" key={field.key}><input type="checkbox" checked={Boolean(editing[field.key])} onChange={(event) => setEditing({ ...editing, [field.key]: event.target.checked })} />{field.label}</label> : <label key={field.key}>{field.label}{contentType === 'certificates' && field.key === 'url' ? <><input type="file" accept="application/pdf" onChange={(event) => setCertificateFile(event.target.files?.[0] ?? null)} /><small>{certificateFile ? certificateFile.name : editing.url ? 'A certificate file is already uploaded.' : 'No file selected.'}</small></> : field.type === 'textarea' ? <textarea rows={5} value={String(editing[field.key] ?? '')} onChange={(event) => setEditing({ ...editing, [field.key]: event.target.value })} /> : <input type={field.type ?? 'text'} value={field.type === 'date' && editing[field.key] ? String(editing[field.key]).slice(0, 10) : String(editing[field.key] ?? '')} onChange={(event) => setEditing({ ...editing, [field.key]: event.target.value })} />}</label>)}<div className="form-actions"><button className="btn secondary" type="button" onClick={() => { setEditing(null); setCertificateFile(null); }}>Cancel</button><button className="btn primary" type="submit">Save item</button></div></form></div>}
   </div></section>;
 }

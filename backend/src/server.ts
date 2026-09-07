@@ -14,7 +14,14 @@ import { contactRouter } from './routes/contact.routes.js';
 const app = express();
 const backendRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-app.use(helmet());
+app.use(helmet({
+  xFrameOptions: false,
+  contentSecurityPolicy: {
+    directives: {
+      frameAncestors: ["'self'", env.CLIENT_URL],
+    },
+  },
+}));
 app.use(cors({
   origin: (origin, callback) => {
     const isLocalDevelopmentOrigin = env.NODE_ENV === 'development'

@@ -1,9 +1,24 @@
 import { Router } from 'express';
+import multer from 'multer';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { mkdirSync } from 'node:fs';
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { requireAdmin } from '../middleware/auth.middleware.js';
 import { prisma } from '../services/prisma.js';
 
 const router = Router();
+const certificateUploadDirectory = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../uploads/certificates');
+mkdirSync(certificateUploadDirectory, { recursive: true });
+const certificateUpload = multer({
+  storage: multer.diskStorage({
+    destination: certificateUploadDirectory,
+    filename: (_req, file, callback) => callback(null, `${randomUUID()}.pdf`),
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, callback) => callback(null, file.mimetype === 'application/pdf'),
+});
 const projectSchema = z.object({
   title: z.string().trim().min(1).max(160), type: z.string().trim().min(1).max(80),
   description: z.string().trim().max(5000), stack: z.string().trim().max(1000),
@@ -41,6 +56,14 @@ function registerCrud(path: string, schema: z.AnyZodObject, findMany: (admin: bo
     res.status(204).send();
   });
 }
+
+router.post('/certificates/upload', requireAdmin, certificateUpload.single('file'), (req, res) => {
+  if (!req.file) {
+    res.status(400).json({ message: 'A PDF certificate file is required.' });
+    return;
+  }
+  res.status(201).json({ url: `/uploads/certificates/${req.file.filename}` });
+});
 
 registerCrud('projects', projectSchema, (admin) => prisma.project.findMany({ where: admin ? undefined : { published: true }, orderBy: { createdAt: 'desc' } }), (data) => prisma.project.create({ data }), (id, data) => prisma.project.update({ where: { id }, data }).catch(() => null), async (id) => (await prisma.project.deleteMany({ where: { id } })).count > 0);
 registerCrud('certificates', certificateSchema, () => prisma.certificate.findMany({ orderBy: { createdAt: 'desc' } }), (data) => prisma.certificate.create({ data }), (id, data) => prisma.certificate.update({ where: { id }, data }).catch(() => null), async (id) => (await prisma.certificate.deleteMany({ where: { id } })).count > 0);

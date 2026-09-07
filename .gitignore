@@ -18,6 +18,7 @@ Thumbs.db
 *.db
 *.sqlite
 *.sqlite3
+*.tsbuildinfo
 temp/
 tmp/
 *.pdf
