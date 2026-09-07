@@ -1,0 +1,188 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+}
+
+enum AvailabilityStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions  Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model Profile {
+  id          String   @id @default(cuid())
+  fullName    String
+  headline    String
+  bio         String
+  location    String?
+  email       String?
+  linkedinUrl String?
+  githubUrl   String?
+  avatarUrl   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("profiles")
+}
+
+model SkillGroup {
+  id        String   @id @default(cuid())
+  name      String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  skills    Skill[]
+
+  @@map("skill_groups")
+}
+
+model Skill {
+  id          String      @id @default(cuid())
+  groupId     String
+  group       SkillGroup  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  name        String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("skills")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  type        String
+  description String
+  stack       String
+  featured    Boolean  @default(false)
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("projects")
+}
+
+model Certificate {
+  id          String   @id @default(cuid())
+  title       String
+  categoryGroup String  @default("Professional & Productivity")
+  category    String
+  issuer      String?
+  description String?
+  issuedAt    DateTime?
+  durationMinutes Int?
+  url         String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("certificates")
+}
+
+model Experience {
+  id          String   @id @default(cuid())
+  title       String
+  company     String?
+  location    String?
+  description String
+  startDate   DateTime?
+  endDate     DateTime?
+  current     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("experiences")
+}
+
+model Education {
+  id          String   @id @default(cuid())
+  institution String
+  degree      String
+  field       String?
+  startDate   DateTime?
+  endDate     DateTime?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("educations")
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  company   String?
+  message   String
+  createdAt DateTime @default(now())
+
+  @@map("contact_messages")
+}
+
+model AvailabilityWindow {
+  id          String               @id @default(cuid())
+  title       String
+  dayOfWeek   Int
+  startTime   String
+  endTime     String
+  timezone    String              @default("UTC")
+  status      AvailabilityStatus  @default(ACTIVE)
+  notes       String?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@map("availability_windows")
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  name        String
+  email       String
+  message     String?
+  startAt     DateTime
+  endAt       DateTime
+  status      BookingStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("bookings")
+}
