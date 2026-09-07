@@ -1,8 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth';
-
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api';
+import { apiBaseUrl } from '../api';
 
 type LoginLocationState = {
   from?: { pathname?: string };

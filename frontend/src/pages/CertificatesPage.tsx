@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Eye, Filter } from 'lucide-react';
-
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api';
-const apiOrigin = apiBaseUrl.replace(/\/api\/?$/, '');
+import { apiBaseUrl, apiOrigin } from '../api';
 type Certificate = { id: string; title: string; categoryGroup: string; category: string; issuer: string | null; description: string | null; url: string | null; issuedAt: string | null; durationMinutes: number | null; };
 /*
 const certificateGroups = [

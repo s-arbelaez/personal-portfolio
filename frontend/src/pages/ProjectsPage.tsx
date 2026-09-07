@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api';
+import { apiBaseUrl } from '../api';
 type Project = { id: string; title: string; type: string; description: string; stack: string; };
 /*
 const projects = [

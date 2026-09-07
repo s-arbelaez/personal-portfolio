@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api';
+import { apiBaseUrl } from './api';
 
 type User = { id: string; email: string; role: 'ADMIN' };
 type AuthContextValue = { user: User | null; isLoading: boolean; refresh: () => Promise<void> };

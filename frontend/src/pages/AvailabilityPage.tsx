@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiBaseUrl } from '../api';
 
 type AvailabilityWindow = {
   id: string;
@@ -11,7 +12,6 @@ type AvailabilityWindow = {
 };
 
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api';
 
 export function AvailabilityPage() {
   const [windows, setWindows] = useState<AvailabilityWindow[]>([]);

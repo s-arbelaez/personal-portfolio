@@ -1,7 +1,6 @@
 import { FormEvent, useState } from 'react';
 import { Link } from 'react-router-dom';
-
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api';
+import { apiBaseUrl } from '../api';
 
 export function ForgotPasswordPage() {
   const [email, setEmail] = useState('');

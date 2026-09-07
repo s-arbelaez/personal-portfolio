@@ -37,3 +37,9 @@ A full-stack portfolio for Sofía Arbeláez Mejía built with:
 The admin email defaults to `sofia.arbelaez.mejia@gmail.com`. The backend reads `backend/.env`; copy
 `.env.example` if it does not exist. The default SQLite database is stored at `backend/prisma/dev.db`.
 Password recovery and Google sign-in require email/OAuth provider credentials before they can send or authenticate.
+
+## Deployment
+
+Deploy the backend as a separate Node.js service because it runs an Express server and uses Prisma. Set its production environment variables from `backend/.env.example`, including a persistent production database, `NODE_ENV=production`, and the public Vercel URL as `CLIENT_URL`.
+
+In the Vercel project for `frontend/`, set `VITE_API_BASE_URL` to the deployed backend URL ending in `/api`, for example `https://api.example.com/api`, then redeploy. Vite embeds `VITE_*` variables during the build, so changing the variable requires a new deployment. Do not use `localhost` in the Vercel value.

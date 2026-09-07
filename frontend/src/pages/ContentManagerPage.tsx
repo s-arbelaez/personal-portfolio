@@ -1,7 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api';
+import { apiBaseUrl } from '../api';
 type ContentType = 'projects' | 'certificates' | 'experience' | 'education';
 type ContentItem = Record<string, string | number | boolean | null> & { id?: string };
 

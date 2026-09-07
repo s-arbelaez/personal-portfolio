@@ -1,7 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api';
+import { apiBaseUrl } from '../api';
 
 type Profile = { fullName: string; headline: string; bio: string; location: string | null; email: string | null; linkedinUrl: string | null; githubUrl: string | null; avatarUrl: string | null };
 
