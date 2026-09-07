@@ -62,6 +62,10 @@ app.get('/api', (_req, res) => {
   });
 });
 
-app.listen(env.PORT, () => {
-  console.log(`Backend running on http://localhost:${env.PORT}`);
-});
+export default app;
+
+if (process.env.VERCEL !== '1') {
+  app.listen(env.PORT, () => {
+    console.log(`Backend running on http://localhost:${env.PORT}`);
+  });
+}
