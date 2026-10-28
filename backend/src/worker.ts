@@ -390,7 +390,7 @@ async function handleProfile(request: Request, env: Env, path: string): Promise<
 }
 
 async function handleContent(request: Request, env: Env, parts: string[], url: URL): Promise<Response> {
-  if (parts[0] === 'upload' && request.method === 'POST') {
+  if (parts[0] === 'certificates' && parts[1] === 'upload' && request.method === 'POST') {
     const admin = await requireAdmin(request, env);
     if (admin instanceof Response) return admin;
     const form = await request.formData();
