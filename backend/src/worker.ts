@@ -58,6 +58,7 @@ interface SessionRow {
 
 type SqlValue = string | number | null | Uint8Array;
 type DataObject = Record<string, unknown>;
+type TableDefinition = { table: string; fields: string[] };
 
 const SESSION_COOKIE = 'portfolio_session';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
@@ -198,7 +199,9 @@ function fromBase64(value: string): Uint8Array {
 
 async function passwordHash(password: string, salt: Uint8Array): Promise<Uint8Array> {
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
-  const derived = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: 310000 }, key, 256);
+  const saltCopy = new Uint8Array(salt.byteLength);
+  saltCopy.set(salt);
+  const derived = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: saltCopy, iterations: 310000 }, key, 256);
   return new Uint8Array(derived);
 }
 
@@ -253,7 +256,7 @@ function toClientRow(row: DataObject): DataObject {
   return Object.fromEntries(Object.entries(row).map(([key, value]) => [key, booleanFields.has(key) ? Boolean(value) : value]));
 }
 
-async function createRow(env: Env, config: (typeof tables)[keyof typeof tables], data: DataObject): Promise<DataObject> {
+async function createRow(env: Env, config: TableDefinition, data: DataObject): Promise<DataObject> {
   const columns = config.fields.filter((field) => data[field] !== undefined);
   const now = new Date().toISOString();
   const names = ['id', ...columns, 'createdAt', 'updatedAt'];
@@ -263,7 +266,7 @@ async function createRow(env: Env, config: (typeof tables)[keyof typeof tables],
   return (await sql(env.DB, `SELECT * FROM "${config.table}" WHERE id = ?`, [values[0] as string]).first<DataObject>())!;
 }
 
-async function updateRow(env: Env, config: (typeof tables)[keyof typeof tables], rowId: string, data: DataObject): Promise<DataObject | null> {
+async function updateRow(env: Env, config: TableDefinition, rowId: string, data: DataObject): Promise<DataObject | null> {
   const columns = config.fields.filter((field) => data[field] !== undefined);
   const assignments = [...columns.map((field) => `"${field}" = ?`), '"updatedAt" = ?'];
   const values = [...columns.map((field) => toSqlValue(data[field])), new Date().toISOString(), rowId];
@@ -272,7 +275,7 @@ async function updateRow(env: Env, config: (typeof tables)[keyof typeof tables],
   return sql(env.DB, `SELECT * FROM "${config.table}" WHERE id = ?`, [rowId]).first<DataObject>();
 }
 
-async function removeRow(env: Env, config: (typeof tables)[keyof typeof tables], rowId: string): Promise<boolean> {
+async function removeRow(env: Env, config: TableDefinition, rowId: string): Promise<boolean> {
   const result = await sql(env.DB, `DELETE FROM "${config.table}" WHERE id = ?`, [rowId]).run();
   return result.meta.changes > 0;
 }
@@ -475,7 +478,6 @@ async function handleAvailability(request: Request, env: Env, parts: string[]): 
     return json({ window: await createRow(env, {
       table: 'availability_windows',
       fields: ['title', 'dayOfWeek', 'startTime', 'endTime', 'timezone', 'status', 'notes'],
-      schema: availabilitySchema,
     }, parsed.data) }, 201);
   }
   if (parts[0] && request.method === 'PATCH') {
@@ -494,7 +496,6 @@ async function handleAvailability(request: Request, env: Env, parts: string[]): 
     const updated = await updateRow(env, {
       table: 'availability_windows',
       fields: ['title', 'dayOfWeek', 'startTime', 'endTime', 'timezone', 'status', 'notes'],
-      schema: availabilityFields,
     }, parts[0], parsed.data);
     return json({ window: updated });
   }
@@ -525,7 +526,6 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
     const created = await createRow(env, {
       table: 'contact_messages',
       fields: ['name', 'email', 'subject', 'company', 'message'],
-      schema: contactSchema,
     }, data);
     return json({ message: 'Your message has been sent.', id: created.id }, 201);
   }

@@ -8,7 +8,7 @@
     "dev:backend": "npm --prefix backend run dev",
     "dev:worker": "wrangler dev --port 8787",
     "build:frontend": "npm --prefix frontend run build",
-    "build": "npm --prefix frontend run build && npm --prefix backend run build",
+    "build": "npm --prefix frontend run build && npm --prefix backend run build && npm --prefix backend run build:worker",
     "build:cloudflare": "npm run build:frontend && wrangler deploy --dry-run",
     "deploy:cloudflare": "npm run build:frontend && wrangler deploy",
     "test": "npm --prefix backend run test"
