@@ -36,7 +36,20 @@ const skillGroups = [
 
 export function HomePage() {
   const [profileLinks, setProfileLinks] = useState<{ linkedinUrl: string | null; githubUrl: string | null }>({ linkedinUrl: null, githubUrl: null });
-  useEffect(() => { fetch(`${apiBaseUrl}/profile/public`).then((response) => response.json()).then((data: { profile: typeof profileLinks }) => setProfileLinks(data.profile)).catch(() => undefined); }, []);
+  useEffect(() => {
+    fetch(`${apiBaseUrl}/profile/public`)
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`Profile request failed with status ${response.status}`);
+        return response.json() as Promise<{ profile?: Partial<typeof profileLinks> }>;
+      })
+      .then((data) => setProfileLinks({
+        linkedinUrl: data.profile?.linkedinUrl ?? null,
+        githubUrl: data.profile?.githubUrl ?? null,
+      }))
+      .catch((error: unknown) => {
+        console.error('Unable to load public profile links', error);
+      });
+  }, []);
   return (
     <>
       <section className="hero">
