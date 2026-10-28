@@ -58,7 +58,7 @@ interface SessionRow {
 
 type SqlValue = string | number | null | Uint8Array;
 type DataObject = Record<string, unknown>;
-type TableDefinition = { table: string; fields: string[] };
+type TableDefinition = { table: string; fields: string[]; hasUpdatedAt?: boolean };
 
 const SESSION_COOKIE = 'portfolio_session';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
@@ -259,8 +259,12 @@ function toClientRow(row: DataObject): DataObject {
 async function createRow(env: Env, config: TableDefinition, data: DataObject): Promise<DataObject> {
   const columns = config.fields.filter((field) => data[field] !== undefined);
   const now = new Date().toISOString();
-  const names = ['id', ...columns, 'createdAt', 'updatedAt'];
-  const values = [id(), ...columns.map((field) => toSqlValue(data[field])), now, now];
+  const names = ['id', ...columns, 'createdAt'];
+  const values = [id(), ...columns.map((field) => toSqlValue(data[field])), now];
+  if (config.hasUpdatedAt !== false) {
+    names.push('updatedAt');
+    values.push(now);
+  }
   await sql(env.DB, `INSERT INTO "${config.table}" (${names.map((name) => `"${name}"`).join(', ')})
     VALUES (${names.map(() => '?').join(', ')})`, values).run();
   return (await sql(env.DB, `SELECT * FROM "${config.table}" WHERE id = ?`, [values[0] as string]).first<DataObject>())!;
@@ -526,6 +530,7 @@ async function handleApi(request: Request, env: Env, url: URL): Promise<Response
     const created = await createRow(env, {
       table: 'contact_messages',
       fields: ['name', 'email', 'subject', 'company', 'message'],
+      hasUpdatedAt: false,
     }, data);
     return json({ message: 'Your message has been sent.', id: created.id }, 201);
   }
