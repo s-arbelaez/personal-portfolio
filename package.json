@@ -2,6 +2,10 @@
   "name": "personal-portfolio",
   "private": true,
   "version": "1.0.0",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
     "dev": "npm run build:frontend && concurrently \"npm run dev:frontend\" \"npm run dev:worker\"",
     "dev:frontend": "npm --prefix frontend run dev -- --host",

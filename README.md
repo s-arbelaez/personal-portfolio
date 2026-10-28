@@ -31,10 +31,11 @@ Set the one-time admin bootstrap password. On the first successful login the Wor
 ```powershell
 npx wrangler secret put ADMIN_PASSWORD
 npm run deploy:cloudflare
-npx wrangler secret delete ADMIN_PASSWORD
 ```
 
-The first login must use `sofia.arbelaez.mejia@gmail.com` and the password entered for `ADMIN_PASSWORD`. All future logins use the stored password hash.
+```powershell
+npx wrangler secret delete ADMIN_PASSWORD
+```
 
 ## Migrating existing content and certificates
 
