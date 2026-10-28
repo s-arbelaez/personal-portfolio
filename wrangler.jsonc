@@ -12,13 +12,8 @@
 		{
 			"binding": "DB",
 			"database_name": "personal-portfolio",
-			"database_id": "00000000000000000000000000000000",
+			"database_id": "66031396-4c88-4e6e-a3d4-5cf65fe0710c",
 			"migrations_dir": "backend/migrations"
-		},
-		{
-			"binding": "personal_portfolio",
-			"database_name": "personal-portfolio",
-			"database_id": "66031396-4c88-4e6e-a3d4-5cf65fe0710c"
 		}
 	],
 	"vars": {
