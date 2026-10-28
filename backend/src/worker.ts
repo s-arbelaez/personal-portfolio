@@ -6,7 +6,7 @@ interface D1Result<T = Record<string, unknown>> {
 }
 
 interface D1Statement {
-  bind(...values: (string | number | null | Uint8Array)[]): D1Statement;
+  bind(...values: (string | number | null | ArrayBuffer)[]): D1Statement;
   all<T = Record<string, unknown>>(): Promise<D1Result<T>>;
   first<T = Record<string, unknown>>(): Promise<T | null>;
   run(): Promise<D1Result>;
@@ -16,27 +16,12 @@ interface D1Database {
   prepare(query: string): D1Statement;
 }
 
-interface R2ObjectBody {
-  body: ReadableStream;
-  httpMetadata?: { contentType?: string };
-}
-
-interface R2Bucket {
-  get(key: string): Promise<R2ObjectBody | null>;
-  put(
-    key: string,
-    value: ArrayBuffer | ReadableStream,
-    options?: { httpMetadata?: { contentType?: string } },
-  ): Promise<unknown>;
-}
-
 interface AssetsBinding {
   fetch(request: Request): Promise<Response>;
 }
 
 interface Env {
   DB: D1Database;
-  UPLOADS: R2Bucket;
   ASSETS: AssetsBinding;
   ADMIN_EMAIL?: string;
   ADMIN_PASSWORD?: string;
@@ -56,7 +41,7 @@ interface SessionRow {
   role: string;
 }
 
-type SqlValue = string | number | null | Uint8Array;
+type SqlValue = string | number | null | ArrayBuffer;
 type DataObject = Record<string, unknown>;
 type TableDefinition = { table: string; fields: string[]; hasUpdatedAt?: boolean };
 
@@ -165,7 +150,7 @@ function sql(db: D1Database, query: string, values: SqlValue[] = []): D1Statemen
 function toSqlValue(value: unknown): SqlValue {
   if (value instanceof Date) return value.toISOString();
   if (typeof value === 'boolean') return value ? 1 : 0;
-  if (typeof value === 'string' || typeof value === 'number' || value === null || value instanceof Uint8Array) return value;
+  if (typeof value === 'string' || typeof value === 'number' || value === null || value instanceof ArrayBuffer) return value;
   throw new Error('Unsupported database value');
 }
 
@@ -395,13 +380,14 @@ async function handleContent(request: Request, env: Env, parts: string[], url: U
     if (admin instanceof Response) return admin;
     const form = await request.formData();
     const file = form.get('file');
-    if (!(file instanceof File) || file.type !== 'application/pdf' || file.size > 10 * 1024 * 1024) {
-      return json({ message: 'A PDF certificate file under 10 MB is required.' }, 400);
+    if (!(file instanceof File) || file.type !== 'application/pdf' || file.size > 1024 * 1024) {
+      return json({ message: 'A PDF certificate file under 1 MB is required.' }, 400);
     }
     const bytes = new Uint8Array(await file.slice(0, 5).arrayBuffer());
     if (new TextDecoder().decode(bytes) !== '%PDF-') return json({ message: 'The uploaded file is not a valid PDF.' }, 400);
     const key = `certificates/${crypto.randomUUID()}.pdf`;
-    await env.UPLOADS.put(key, file.stream(), { httpMetadata: { contentType: 'application/pdf' } });
+    await sql(env.DB, `INSERT INTO certificate_files (key, contentType, data, createdAt)
+      VALUES (?, 'application/pdf', ?, ?)`, [key, await file.arrayBuffer(), new Date().toISOString()]).run();
     return json({ url: `/uploads/${key}` }, 201);
   }
 
@@ -549,14 +535,17 @@ async function serveUpload(request: Request, env: Env, pathname: string): Promis
     return json({ message: 'Invalid upload path' }, 400);
   }
   if (!key || key.split('/').some((part) => !part || part === '.' || part === '..')) return json({ message: 'Not found' }, 404);
-  const object = await env.UPLOADS.get(key);
-  if (!object) return json({ message: 'Not found' }, 404);
+  const file = await sql(env.DB, 'SELECT contentType, data FROM certificate_files WHERE key = ?', [key])
+    .first<{ contentType: string; data: ArrayBuffer | Uint8Array }>();
+  if (!file) return json({ message: 'Not found' }, 404);
   const headers = new Headers({
-    'Content-Type': object.httpMetadata?.contentType ?? 'application/octet-stream',
+    'Content-Type': file.contentType,
     'Cache-Control': 'public, max-age=3600',
     'X-Content-Type-Options': 'nosniff',
   });
-  return new Response(request.method === 'HEAD' ? null : object.body, { headers });
+  const body = file.data instanceof ArrayBuffer ? file.data : new Uint8Array(file.data);
+  headers.set('Content-Length', String(body.byteLength));
+  return new Response(request.method === 'HEAD' ? null : body, { headers });
 }
 
 export default {

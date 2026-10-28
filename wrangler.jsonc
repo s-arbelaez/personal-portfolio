@@ -16,12 +16,6 @@
       "migrations_dir": "backend/migrations"
     }
   ],
-  "r2_buckets": [
-    {
-      "binding": "UPLOADS",
-      "bucket_name": "personal-portfolio-uploads"
-    }
-  ],
   "vars": {
     "ADMIN_EMAIL": "sofia.arbelaez.mejia@gmail.com"
   }

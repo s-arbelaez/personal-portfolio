@@ -1,23 +1,22 @@
 # Personal Portfolio
 
-A full-stack portfolio for Sofía Arbeláez Mejía. Production hosting uses Cloudflare Workers for the API and static frontend, D1 for relational data, and R2 for certificate PDFs.
+A full-stack portfolio for Sofía Arbeláez Mejía. Production hosting uses Cloudflare Workers for the API and static frontend, with D1 for relational data and certificate PDFs. It does not require R2 or a paid Cloudflare service.
 
 ## Project structure
 
 - `frontend/` — React + Vite + TypeScript frontend
 - `backend/src/worker.ts` — Cloudflare Worker API
 - `backend/migrations/` — D1 SQL migrations
-- `backend/uploads/certificates/` — local PDF source files to copy to R2
+- `backend/uploads/certificates/` — local PDF source files to add from the admin dashboard
 - `backend/src/server.ts` — existing Express/Prisma server for legacy local development
-- `wrangler.jsonc` — Worker, static asset, D1, and R2 configuration
+- `wrangler.jsonc` — Worker, static asset, and D1 configuration
 
 ## Cloudflare resources
 
-Create a D1 database and an R2 bucket, then update the D1 `database_id` in `wrangler.jsonc` with the ID returned by Cloudflare:
+Create a D1 database, then update the D1 `database_id` in `wrangler.jsonc` with the ID returned by Cloudflare. No R2 bucket or payment card is needed:
 
 ```powershell
 npx wrangler d1 create personal-portfolio
-npx wrangler r2 bucket create personal-portfolio-uploads
 ```
 
 Apply the schema:
@@ -50,15 +49,7 @@ npx wrangler d1 execute personal-portfolio --remote --file=backend/d1-content-im
 
 The export script excludes users and sessions. The generated SQL file is ignored by Git.
 
-Certificate objects are stored in R2 under `certificates/`. Copy existing local PDFs after creating the R2 bucket:
-
-```powershell
-Get-ChildItem -LiteralPath 'backend\uploads\certificates' -Filter '*.pdf' -File | ForEach-Object {
-  npx wrangler r2 object put "personal-portfolio-uploads/certificates/$($_.Name)" --file="$($_.FullName)" --remote
-}
-```
-
-This keeps existing `/uploads/certificates/...` database URLs working. New uploads made through the admin content manager are stored directly in R2.
+Certificate PDFs are stored as D1 BLOBs. The `0002_certificate_files.sql` migration adds this table without changing the existing initial migration. After applying migrations, use the admin content manager to upload PDFs (maximum 1 MB each); the files are served from the same `/uploads/...` URLs as before.
 
 ## Development and deployment
 
@@ -68,7 +59,7 @@ Install dependencies with `npm install`, then run:
 npm run dev
 ```
 
-This builds the static assets, starts Vite on port 5173, and starts the Worker on port 8787. Vite proxies `/api` and `/uploads` to the Worker. Local D1/R2 emulation is managed by Wrangler; apply the migration locally with:
+This builds the static assets, starts Vite on port 5173, and starts the Worker on port 8787. Vite proxies `/api` and `/uploads` to the Worker. Local D1 emulation is managed by Wrangler; apply the migrations locally with:
 
 ```powershell
 npx wrangler d1 migrations apply personal-portfolio --local
