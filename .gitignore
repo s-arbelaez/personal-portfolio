@@ -22,3 +22,11 @@ Thumbs.db
 temp/
 tmp/
 *.pdf
+!backend/uploads/
+!backend/uploads/certificates/
+backend/uploads/certificates/*
+!backend/uploads/certificates/Data_Science_Essentials_with_Python_certificate_sofia-arbelaez-mejia-gmail-com_eb5eebc7-37b7-4b53-a3cf-30cbbcac2ceb.pdf
+
+backend/d1-content-import.sql
+__pycache__/
+*.py[cod]

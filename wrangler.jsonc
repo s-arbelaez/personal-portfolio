@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "personal-portfolio",
+  "main": "backend/src/worker.ts",
+  "compatibility_date": "2026-10-28",
+  "assets": {
+    "directory": "./frontend/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "personal-portfolio",
+      "database_id": "00000000000000000000000000000000",
+      "migrations_dir": "backend/migrations"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "UPLOADS",
+      "bucket_name": "personal-portfolio-uploads"
+    }
+  ],
+  "vars": {
+    "ADMIN_EMAIL": "sofia.arbelaez.mejia@gmail.com"
+  }
+}

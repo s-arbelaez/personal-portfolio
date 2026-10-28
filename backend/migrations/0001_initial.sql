@@ -1,0 +1,136 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  password TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'ADMIN',
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+  id TEXT PRIMARY KEY NOT NULL,
+  tokenHash TEXT NOT NULL UNIQUE,
+  userId TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  expiresAt TEXT NOT NULL,
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS sessions_userId_idx ON sessions(userId);
+CREATE INDEX IF NOT EXISTS sessions_expiresAt_idx ON sessions(expiresAt);
+
+CREATE TABLE IF NOT EXISTS profiles (
+  id TEXT PRIMARY KEY NOT NULL,
+  fullName TEXT NOT NULL,
+  headline TEXT NOT NULL,
+  bio TEXT NOT NULL,
+  location TEXT,
+  email TEXT,
+  linkedinUrl TEXT,
+  githubUrl TEXT,
+  avatarUrl TEXT,
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS skill_groups (
+  id TEXT PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL,
+  "order" INTEGER NOT NULL DEFAULT 0,
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS skills (
+  id TEXT PRIMARY KEY NOT NULL,
+  groupId TEXT NOT NULL REFERENCES skill_groups(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS projects (
+  id TEXT PRIMARY KEY NOT NULL,
+  title TEXT NOT NULL,
+  type TEXT NOT NULL,
+  description TEXT NOT NULL,
+  stack TEXT NOT NULL,
+  featured INTEGER NOT NULL DEFAULT 0,
+  published INTEGER NOT NULL DEFAULT 1,
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS certificates (
+  id TEXT PRIMARY KEY NOT NULL,
+  title TEXT NOT NULL,
+  categoryGroup TEXT NOT NULL DEFAULT 'Professional & Productivity',
+  category TEXT NOT NULL,
+  issuer TEXT,
+  description TEXT,
+  issuedAt TEXT,
+  durationMinutes INTEGER,
+  url TEXT,
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS experiences (
+  id TEXT PRIMARY KEY NOT NULL,
+  title TEXT NOT NULL,
+  company TEXT,
+  location TEXT,
+  description TEXT NOT NULL,
+  startDate TEXT,
+  endDate TEXT,
+  current INTEGER NOT NULL DEFAULT 0,
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS educations (
+  id TEXT PRIMARY KEY NOT NULL,
+  institution TEXT NOT NULL,
+  degree TEXT NOT NULL,
+  field TEXT,
+  startDate TEXT,
+  endDate TEXT,
+  description TEXT,
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS contact_messages (
+  id TEXT PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  subject TEXT,
+  company TEXT,
+  message TEXT NOT NULL,
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS availability_windows (
+  id TEXT PRIMARY KEY NOT NULL,
+  title TEXT NOT NULL,
+  dayOfWeek INTEGER NOT NULL,
+  startTime TEXT NOT NULL,
+  endTime TEXT NOT NULL,
+  timezone TEXT NOT NULL DEFAULT 'UTC',
+  status TEXT NOT NULL DEFAULT 'ACTIVE',
+  notes TEXT,
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS bookings (
+  id TEXT PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  message TEXT,
+  startAt TEXT NOT NULL,
+  endAt TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'PENDING',
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TEXT NOT NULL
+);
