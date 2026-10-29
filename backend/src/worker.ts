@@ -47,6 +47,7 @@ type TableDefinition = { table: string; fields: string[]; hasUpdatedAt?: boolean
 
 const SESSION_COOKIE = 'portfolio_session';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
+const PASSWORD_HASH_ITERATIONS = 100_000;
 const DEFAULT_EMAIL = 'sofia.arbelaez.mejia@gmail.com';
 
 const profileSchema = z.object({
@@ -186,13 +187,13 @@ async function passwordHash(password: string, salt: Uint8Array): Promise<Uint8Ar
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
   const saltCopy = new Uint8Array(salt.byteLength);
   saltCopy.set(salt);
-  const derived = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: saltCopy, iterations: 310000 }, key, 256);
+  const derived = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: saltCopy, iterations: PASSWORD_HASH_ITERATIONS }, key, 256);
   return new Uint8Array(derived);
 }
 
 async function verifyPassword(password: string, stored: string): Promise<boolean> {
   const [algorithm, iterationsValue, saltValue, hashValue] = stored.split('$');
-  if (algorithm !== 'pbkdf2' || iterationsValue !== '310000' || !saltValue || !hashValue) return false;
+  if (algorithm !== 'pbkdf2' || iterationsValue !== String(PASSWORD_HASH_ITERATIONS) || !saltValue || !hashValue) return false;
   const actual = await passwordHash(password, fromBase64(saltValue));
   const expected = fromBase64(hashValue);
   if (actual.length !== expected.length) return false;
@@ -203,7 +204,7 @@ async function verifyPassword(password: string, stored: string): Promise<boolean
 
 async function makePasswordHash(password: string): Promise<string> {
   const salt = crypto.getRandomValues(new Uint8Array(16));
-  return `pbkdf2$310000$${toBase64(salt)}$${toBase64(await passwordHash(password, salt))}`;
+  return `pbkdf2$${PASSWORD_HASH_ITERATIONS}$${toBase64(salt)}$${toBase64(await passwordHash(password, salt))}`;
 }
 
 async function sessionFor(request: Request, env: Env): Promise<SessionRow | null> {
