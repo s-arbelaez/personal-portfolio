@@ -65,7 +65,7 @@ This builds the static assets, starts Vite on port 5173, and starts the Worker o
 npx wrangler d1 migrations apply personal-portfolio --local
 ```
 
-Build and validate the frontend/Worker bundle with `npm run build:cloudflare`. Deploy with `npm run deploy:cloudflare`. The deployed Worker serves both the site and API from one origin, so `VITE_API_BASE_URL` should normally remain unset (the frontend uses `/api`).
+Build and validate the frontend/Worker bundle with `npm run build:cloudflare`. Deploy with `npm run deploy:cloudflare`. The deployed Worker serves both the site and API from one origin, so `VITE_API_BASE_URL` should normally remain unset (the frontend uses `/api`). In the Cloudflare build settings, remove any `VITE_API_BASE_URL` value pointing to `localhost`; production builds ignore localhost API URLs and use `/api`.
 
 ## Notes
 
