@@ -20,6 +20,8 @@ const metadata = [
   ['Practical AI for Marketing', '2026-06-01', 120, 'AI & Technology'],
   ['Innovation and Creativity: Develop Your Creative Thinking Step by Step', '2026-06-01', 480, 'Professional & Productivity'],
   ['Public Speaking Using Acting Techniques', '2026-06-01', 480, 'Professional & Productivity'],
+  ['Data Science Ethics', '2026-08-18', null, 'Data & Analytics'],
+  ['Data Science Essentials with Python', '2026-10-20', null, 'Data & Analytics'],
 ] as const;
 
 const groups: Record<string, string> = {

@@ -39,6 +39,7 @@ export function CertificatesPage() {
     const fileName = decodeURIComponent(url.split('/').pop() ?? '');
     if (/^Coursera\s+[^/]+\.pdf$/i.test(fileName)) return 'Coursera';
     if (/^\d+_[^/]+\.pdf$/i.test(fileName)) return 'Santander Open Academy';
+    if (/^Data_Science_Essentials_with_Python_certificate_/i.test(fileName)) return 'Cisco Networking Academy';
     return null;
   };
   const groups = useMemo(() => ['All', ...Array.from(new Set(certificateGroups.map((certificate) => certificate.categoryGroup))).sort()], [certificateGroups]);

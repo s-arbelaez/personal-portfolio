@@ -122,6 +122,14 @@ const certificates = [
     description: 'Introduction to Power BI and its use for transforming data into visualizations, reports, and actionable insights.',
     issuer: 'Santander Open Academy',
   },
+  {
+    title: 'Data Science Essentials with Python',
+    categoryGroup: 'Data & Analytics',
+    category: 'Data Science / Python',
+    description: 'Foundational training in data science with Python through the Cisco Networking Academy program.',
+    issuer: 'Cisco Networking Academy',
+    url: '/uploads/certificates/Data_Science_Essentials_with_Python_certificate_sofia-arbelaez-mejia-gmail-com_eb5eebc7-37b7-4b53-a3cf-30cbbcac2ceb.pdf',
+  },
 ] as const;
 
 for (const certificate of certificates) {
