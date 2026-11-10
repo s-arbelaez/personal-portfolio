@@ -49,7 +49,7 @@ npx wrangler d1 execute personal-portfolio --remote --file=backend/d1-content-im
 
 The export script excludes users and sessions. The generated SQL file is ignored by Git.
 
-Certificate PDFs are stored as D1 BLOBs. The `0002_certificate_files.sql` migration adds this table without changing the existing initial migration. After applying migrations, use the admin content manager to upload PDFs (maximum 1 MB each); the files are served from the same `/uploads/...` URLs as before.
+Certificate PDFs are stored as D1 BLOBs. The `0002_certificate_files.sql` migration adds this table without changing the existing initial migration. After applying migrations, use the admin content manager to upload PDFs (maximum 1 MB each); the files are served from the same `/uploads/...` URLs as before, with byte-range support for browser previews.
 
 To publish the existing local certificate records and PDFs to D1 without replacing other production content, export only the certificates and run the generated SQL against the remote database:
 

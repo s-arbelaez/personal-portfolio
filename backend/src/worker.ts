@@ -544,9 +544,29 @@ async function serveUpload(request: Request, env: Env, pathname: string): Promis
     'Content-Type': file.contentType,
     'Cache-Control': 'public, max-age=3600',
     'X-Content-Type-Options': 'nosniff',
+    'Accept-Ranges': 'bytes',
   });
   const body = file.data instanceof ArrayBuffer ? file.data : new Uint8Array(file.data);
+  const range = request.headers.get('Range');
+  if (range) {
+    const match = /^bytes=(\d*)-(\d*)$/i.exec(range.trim());
+    if (match && body.byteLength > 0) {
+      const start = match[1] ? Number(match[1]) : Math.max(0, body.byteLength - Number(match[2]));
+      const end = match[1] && match[2] ? Math.min(Number(match[2]), body.byteLength - 1) : body.byteLength - 1;
+      if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start >= body.byteLength || start > end) {
+        headers.set('Content-Range', `bytes */${body.byteLength}`);
+        headers.set('Content-Length', '0');
+        return new Response(null, { status: 416, headers });
+      }
+      const partialBody = body.slice(start, end + 1);
+      headers.set('Content-Range', `bytes ${start}-${end}/${body.byteLength}`);
+      headers.set('Content-Length', String(partialBody.byteLength));
+      headers.set('Content-Disposition', 'inline');
+      return new Response(request.method === 'HEAD' ? null : partialBody, { status: 206, headers });
+    }
+  }
   headers.set('Content-Length', String(body.byteLength));
+  headers.set('Content-Disposition', 'inline');
   return new Response(request.method === 'HEAD' ? null : body, { headers });
 }
 
