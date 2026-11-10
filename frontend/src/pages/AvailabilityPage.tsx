@@ -34,7 +34,7 @@ export function AvailabilityPage() {
       <div className="container">
         <div className="section-header">
           <span className="section-eyebrow">Availability</span>
-          <h2>Availability management</h2>
+          <h1>Availability</h1>
         </div>
 
         {isLoading && <p>Loading availability...</p>}

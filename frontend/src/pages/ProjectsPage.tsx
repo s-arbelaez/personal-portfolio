@@ -55,7 +55,7 @@ export function ProjectsPage() {
       <div className="container">
         <div className="section-header">
           <span className="section-eyebrow">Projects</span>
-          <h2>Selected project work</h2>
+          <h1>Selected project work</h1>
         </div>
 
         <div className="card-grid">

@@ -67,7 +67,7 @@ export function CertificatesPage() {
       <div className="container">
         <div className="section-header">
           <span className="section-eyebrow">Certificates</span>
-          <h2>Evidence and academic records</h2>
+          <h1>Evidence and academic records</h1>
         </div>
         <div className="certificate-toolbar">
           <label className="certificate-sort-control" htmlFor="certificate-sort"><Filter size={16} strokeWidth={2} aria-hidden="true" /><span>Sort by</span><select id="certificate-sort" value={sortOrder} onChange={(event) => setSortOrder(event.target.value)}><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="shortest">Shortest first</option><option value="longest">Longest first</option></select></label>

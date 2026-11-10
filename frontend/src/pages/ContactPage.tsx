@@ -26,7 +26,7 @@ export function ContactPage() {
       <div className="container">
         <div className="section-header">
           <span className="section-eyebrow">Contact</span>
-          <h2>Get in touch</h2>
+          <h1>Get in touch</h1>
         </div>
 
         <form className="card contact-form" onSubmit={submitForm}>
