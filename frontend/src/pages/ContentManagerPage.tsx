@@ -44,6 +44,7 @@ export function ContentManagerPage() {
         if (!uploadResponse.ok || !uploadResult?.url) { setMessage(uploadResult?.message ?? 'Unable to upload certificate.'); return; }
         payload.url = uploadResult.url;
       }
+      payload.url = payload.url || null;
       payload.issuedAt = payload.issuedAt ? String(payload.issuedAt).slice(0, 10) : null;
       payload.durationMinutes = payload.durationMinutes ? Number(payload.durationMinutes) : null;
     }

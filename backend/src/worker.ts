@@ -78,7 +78,8 @@ const certificateSchema = z.object({
   description: z.string().trim().max(5000).nullable().optional(),
   issuedAt: z.coerce.date().nullable().optional(),
   durationMinutes: z.number().int().positive().max(100000).nullable().optional(),
-  url: z.union([z.string().url(), z.string().regex(/^\/uploads\/[\w./-]+$/)]).nullable().optional(),
+  url: z.preprocess((value) => value === '' ? null : value,
+    z.union([z.string().url(), z.string().regex(/^\/uploads\/[\w./-]+$/)]).nullable().optional()),
 });
 
 const experienceSchema = z.object({
