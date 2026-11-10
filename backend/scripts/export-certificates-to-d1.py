@@ -17,6 +17,7 @@ CERTIFICATE_COLUMNS = (
     "updatedAt",
 )
 MAX_FILE_SIZE = 1024 * 1024
+SQL_CHUNK_SIZE = 24 * 1024
 
 
 def quote_identifier(value):
@@ -61,7 +62,7 @@ def main():
         values = ", ".join(quote_value(row[name]) for name in CERTIFICATE_COLUMNS)
         statements.append(f'INSERT OR IGNORE INTO "certificates" ({names}) VALUES ({values});')
 
-    file_count = 0
+    files = {}
     for row in rows:
         url = row["url"]
         if not url:
@@ -83,18 +84,28 @@ def main():
             parser.error(f"Certificate PDF exceeds the 1 MiB D1 upload limit: {file_path}")
         if not data.startswith(b"%PDF-"):
             parser.error(f"Certificate file is not a PDF: {file_path}")
+        files[filename] = data
 
+    for filename, data in files.items():
+        key = f"certificates/{filename}"
         statements.append(
-            'INSERT OR IGNORE INTO "certificate_files" ("key", "contentType", "data", "createdAt") '
-            f"VALUES ({quote_value(f'certificates/{filename}')}, 'application/pdf', "
-            f"{quote_value(data)}, CURRENT_TIMESTAMP);"
+            f'DELETE FROM "certificate_files" WHERE "key" = {quote_value(key)};'
         )
-        file_count += 1
+        statements.append(
+            'INSERT INTO "certificate_files" ("key", "contentType", "data", "createdAt") '
+            f"VALUES ({quote_value(key)}, 'application/pdf', zeroblob(0), CURRENT_TIMESTAMP);"
+        )
+        for offset in range(0, len(data), SQL_CHUNK_SIZE):
+            chunk = data[offset:offset + SQL_CHUNK_SIZE]
+            statements.append(
+                f'UPDATE "certificate_files" SET "data" = CAST("data" || '
+                f"{quote_value(chunk)} AS BLOB) WHERE \"key\" = {quote_value(key)};"
+            )
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text("\n".join(statements) + "\n", encoding="utf-8")
-    print(f"Exported {len(rows)} certificate records and {file_count} PDFs to {args.output}.")
-    print("Existing D1 rows are preserved by INSERT OR IGNORE.")
+    print(f"Exported {len(rows)} certificate records and {len(files)} PDFs to {args.output}.")
+    print("Certificate records are preserved by INSERT OR IGNORE; matching PDF keys are replaced.")
 
 
 if __name__ == "__main__":

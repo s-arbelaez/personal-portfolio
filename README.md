@@ -58,7 +58,7 @@ python backend/scripts/export-certificates-to-d1.py backend/prisma/dev.db
 npx wrangler d1 execute personal-portfolio --remote --file=backend/d1-certificates-import.sql
 ```
 
-The export validates that every referenced local PDF exists, is a valid PDF, and is within D1's 1 MiB upload limit. It uses `INSERT OR IGNORE`, so it is safe to rerun without replacing certificates or files that already exist in D1.
+The export validates that every referenced local PDF exists, is a valid PDF, and is within D1's 1 MiB upload limit. It uses `INSERT OR IGNORE` for certificate records and replaces only the matching certificate PDF keys, leaving unrelated production content and files untouched. PDF data is split into small SQL updates to stay within D1's statement-size limit.
 
 ## Development and deployment
 
