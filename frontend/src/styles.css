@@ -172,12 +172,19 @@ p {
   border-radius: 50%;
   opacity: 0;
   background:
-    radial-gradient(ellipse at 42% 42%, color-mix(in srgb, var(--accent) 15%, transparent) 0%, transparent 58%),
-    radial-gradient(ellipse at 62% 60%, color-mix(in srgb, var(--gold) 9%, transparent) 0%, transparent 65%);
-  mix-blend-mode: soft-light;
+    radial-gradient(ellipse at 42% 42%, color-mix(in srgb, var(--accent) 24%, transparent) 0%, transparent 58%),
+    radial-gradient(ellipse at 62% 60%, color-mix(in srgb, var(--gold) 13%, transparent) 0%, transparent 65%);
+  mix-blend-mode: multiply;
   pointer-events: none;
   will-change: transform, opacity;
   transition: opacity 500ms ease;
+}
+
+:root[data-theme='dark'] .cursor-ombre {
+  background:
+    radial-gradient(ellipse at 42% 42%, color-mix(in srgb, var(--accent) 18%, transparent) 0%, transparent 58%),
+    radial-gradient(ellipse at 62% 60%, color-mix(in srgb, var(--gold) 10%, transparent) 0%, transparent 65%);
+  mix-blend-mode: soft-light;
 }
 
 .cursor-ombre[data-active='true'] { opacity: 1; }
