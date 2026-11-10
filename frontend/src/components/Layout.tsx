@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import { Moon, Sun } from 'lucide-react';
 import { useAuth } from '../auth';
@@ -18,6 +18,7 @@ function getInitialTheme(): Theme {
 export function Layout() {
   const { user } = useAuth();
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const ombreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -29,12 +30,73 @@ export function Layout() {
     }
   }, [theme]);
 
+  useEffect(() => {
+    const element = ombreRef.current;
+    const canTrackPointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (element === null) return;
+    if (!canTrackPointer.matches || reduceMotion.matches) return;
+    const ombre: HTMLDivElement = element;
+
+    let targetX = 0;
+    let targetY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let animationFrame = 0;
+
+    function followPointer() {
+      currentX += (targetX - currentX) * 0.12;
+      currentY += (targetY - currentY) * 0.12;
+      ombre.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
+
+      if (Math.abs(targetX - currentX) + Math.abs(targetY - currentY) > 0.5) {
+        animationFrame = window.requestAnimationFrame(followPointer);
+      } else {
+        animationFrame = 0;
+      }
+    }
+
+    function onPointerMove(event: PointerEvent) {
+      if (event.pointerType !== 'mouse') return;
+      targetX = event.clientX;
+      targetY = event.clientY;
+      ombre.dataset.active = 'true';
+      if (!animationFrame) animationFrame = window.requestAnimationFrame(followPointer);
+    }
+
+    function hideOmbre() {
+      delete ombre.dataset.active;
+    }
+
+    function onVisibilityChange() {
+      if (document.hidden) hideOmbre();
+    }
+
+    function onPointerOut(event: PointerEvent) {
+      if (!event.relatedTarget) hideOmbre();
+    }
+
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
+    window.addEventListener('blur', hideOmbre);
+    document.addEventListener('pointerout', onPointerOut);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('blur', hideOmbre);
+      document.removeEventListener('pointerout', onPointerOut);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
+    };
+  }, []);
+
   function toggleTheme() {
     setTheme((currentTheme) => currentTheme === 'dark' ? 'light' : 'dark');
   }
 
   return (
     <>
+      <div className="cursor-ombre" ref={ombreRef} aria-hidden="true" />
       <a className="skip-link" href="#main-content">Skip to content</a>
       <header className="site-header">
         <div className="container navbar">

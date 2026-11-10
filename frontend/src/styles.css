@@ -162,6 +162,26 @@ p {
   transition: background-color 240ms ease, border-color 240ms ease;
 }
 
+.cursor-ombre {
+  position: fixed;
+  z-index: 19;
+  top: 0;
+  left: 0;
+  width: min(34rem, 76vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  opacity: 0;
+  background:
+    radial-gradient(ellipse at 42% 42%, color-mix(in srgb, var(--accent) 15%, transparent) 0%, transparent 58%),
+    radial-gradient(ellipse at 62% 60%, color-mix(in srgb, var(--gold) 9%, transparent) 0%, transparent 65%);
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+  will-change: transform, opacity;
+  transition: opacity 500ms ease;
+}
+
+.cursor-ombre[data-active='true'] { opacity: 1; }
+
 .navbar {
   display: flex;
   min-height: 76px;
@@ -334,7 +354,7 @@ p {
 
 .hero-art::before { inset: 14% 14%; }
 .hero-art::after { inset: 22% 22%; }
-.art-index, .art-label, .art-caption { position: relative; z-index: 1; }
+.art-index, .art-label, .art-caption { position: relative; z-index: 2; }
 .art-index { color: var(--muted); font-size: 0.7rem; letter-spacing: 0.12em; }
 
 .signal-graphic {
@@ -677,6 +697,14 @@ p {
 .content-form input[type='file'] { max-width: 100%; color: var(--muted); }
 .manager-message { padding: 0.75rem 1rem; border-left: 3px solid var(--gold); background: var(--surface); color: var(--text); }
 
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .capability-card:hover .capability-number { color: var(--accent); }
+  .tag { transition: border-color 180ms ease, color 180ms ease, background-color 180ms ease, transform 180ms ease; }
+  .tag:hover { transform: translateY(-2px); border-color: var(--accent); background: var(--accent-soft); color: var(--text); }
+  .certificate-meta span { transition: border-color 180ms ease, color 180ms ease; }
+  .card:hover .certificate-meta span { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
+}
+
 @keyframes rise-in {
   from { opacity: 0; transform: translateY(18px); }
   to { opacity: 1; transform: translateY(0); }
@@ -696,6 +724,7 @@ p {
 @media (max-width: 700px) {
   :root { font-size: 16px; }
   .container { width: min(100% - 2rem, 560px); }
+  .cursor-ombre { display: none; }
   .navbar { align-items: flex-start; gap: 0.75rem; }
   .brand { padding-top: 0.4rem; }
   .nav-actions { flex-direction: row-reverse; align-items: flex-start; }
@@ -749,6 +778,7 @@ p {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .cursor-ombre { display: none; }
   *, *::before, *::after {
     scroll-behavior: auto !important;
     animation-duration: 0.01ms !important;
