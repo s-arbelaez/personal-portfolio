@@ -51,6 +51,15 @@ The export script excludes users and sessions. The generated SQL file is ignored
 
 Certificate PDFs are stored as D1 BLOBs. The `0002_certificate_files.sql` migration adds this table without changing the existing initial migration. After applying migrations, use the admin content manager to upload PDFs (maximum 1 MB each); the files are served from the same `/uploads/...` URLs as before.
 
+To publish the existing local certificate records and PDFs to D1 without replacing other production content, export only the certificates and run the generated SQL against the remote database:
+
+```powershell
+python backend/scripts/export-certificates-to-d1.py backend/prisma/dev.db
+npx wrangler d1 execute personal-portfolio --remote --file=backend/d1-certificates-import.sql
+```
+
+The export validates that every referenced local PDF exists, is a valid PDF, and is within D1's 1 MiB upload limit. It uses `INSERT OR IGNORE`, so it is safe to rerun without replacing certificates or files that already exist in D1.
+
 ## Development and deployment
 
 Install dependencies with `npm install`, then run:
