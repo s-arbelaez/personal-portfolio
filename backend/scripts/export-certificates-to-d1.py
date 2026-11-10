@@ -1,5 +1,6 @@
 import argparse
 import sqlite3
+from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 
 
@@ -34,6 +35,12 @@ def quote_value(value):
     return str(value)
 
 
+def certificate_value(column, value):
+    if column == "issuedAt" and isinstance(value, (int, float)):
+        return datetime.fromtimestamp(value / 1000, timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    return value
+
+
 def main():
     parser = argparse.ArgumentParser(description="Export local certificates and PDFs to D1-compatible SQL.")
     parser.add_argument("database", type=Path, help="Path to the Prisma SQLite database file")
@@ -59,7 +66,7 @@ def main():
     statements = ["PRAGMA foreign_keys = ON;"]
     for row in rows:
         names = ", ".join(quote_identifier(name) for name in CERTIFICATE_COLUMNS)
-        values = ", ".join(quote_value(row[name]) for name in CERTIFICATE_COLUMNS)
+        values = ", ".join(quote_value(certificate_value(name, row[name])) for name in CERTIFICATE_COLUMNS)
         statements.append(f'INSERT OR IGNORE INTO "certificates" ({names}) VALUES ({values});')
 
     files = {}

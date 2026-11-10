@@ -1,7 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Eye, Filter } from 'lucide-react';
 import { apiBaseUrl, apiOrigin } from '../api';
-type Certificate = { id: string; title: string; categoryGroup: string; category: string; issuer: string | null; description: string | null; url: string | null; issuedAt: string | null; durationMinutes: number | null; };
+type Certificate = { id: string; title: string; categoryGroup: string; category: string; issuer: string | null; description: string | null; url: string | null; issuedAt: string | number | null; durationMinutes: number | null; };
+
+function parseCertificateDate(value: Certificate['issuedAt']): Date | null {
+  if (value === null || value === '') return null;
+  const timestamp = typeof value === 'number'
+    ? value
+    : /^\d{10,13}$/.test(value) ? Number(value) * (value.length === 10 ? 1000 : 1) : Date.parse(value);
+  if (!Number.isFinite(timestamp)) return null;
+  const date = new Date(timestamp);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 /*
 const certificateGroups = [
   {
@@ -55,11 +66,14 @@ export function CertificatesPage() {
     .filter(matchesAdditionalFilters)
     .sort((left, right) => {
       if (sortOrder === 'shortest' || sortOrder === 'longest') return ((left.durationMinutes ?? Number.MAX_SAFE_INTEGER) - (right.durationMinutes ?? Number.MAX_SAFE_INTEGER)) * (sortOrder === 'longest' ? -1 : 1);
-      const leftDate = left.issuedAt ? new Date(left.issuedAt).getTime() : 0;
-      const rightDate = right.issuedAt ? new Date(right.issuedAt).getTime() : 0;
+      const leftDate = parseCertificateDate(left.issuedAt)?.getTime() ?? 0;
+      const rightDate = parseCertificateDate(right.issuedAt)?.getTime() ?? 0;
       return sortOrder === 'oldest' ? leftDate - rightDate : rightDate - leftDate;
     }), [certificateGroups, selectedGroup, selectedCategory, selectedIssuer, selectedPlatform, fileStatus, sortOrder]);
-  const formatApproximateDate = (date: string | null) => date ? new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric' }).format(new Date(date)) : 'Date not listed';
+  const formatApproximateDate = (value: Certificate['issuedAt']) => {
+    const date = parseCertificateDate(value);
+    return date ? new Intl.DateTimeFormat('en', { month: 'short', year: 'numeric' }).format(date) : 'Date not listed';
+  };
   const formatDuration = (minutes: number | null) => minutes ? minutes >= 60 ? `${minutes / 60} hours` : `${minutes} minutes` : 'Duration not listed';
   const getCertificateUrl = (url: string | null) => url?.startsWith('/') ? `${apiOrigin}${encodeURI(url)}` : url;
   const certificateUrl = getCertificateUrl(openCertificate?.url ?? null);
